@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <meta name="Generator" content="Sublime Text3">
+    <meta name="Author" content="深山一枯柴">
+    <meta name="website" content="http://www.lihui-v.top">
+    <meta name="Description" content="马不停蹄的🐌!">
+    <style type="text/css">
+    	*{
+    		margin: 0;
+    		padding: 0;
+    	}
+    	#box {
+    		width: 412px;
+    		height: 500px;
+    		margin: 0 auto;
+    		border: 1px solid gray;
+    		text-align: center;
+    	}
+    	/*分数*/
+    	.score_box {
+    		height: 45px;
+    		width: 100%;
+    		font-size: 25px;
+    		color: green;
+    		text-align: center;
+    	}
+    	/*画面*/
+        #main{
+            width: 410px;
+            height: 400px;
+            border: 1px solid black;
+            margin: auto;
+            position: relative;
+            overflow: hidden;
+        }
+        /*容器*/
+        #content{
+            width: 100%;
+            height: 400px;
+            position: relative;
+            top:-150px;
+            left: 0;
+            background: white;
+        }
+        /*行*/
+        .row {
+        	width: 100%;
+            height: 150px;
+        }
+        /*.单个的格子相当于单个的td*/
+        .cell{
+            width: 100px;
+            height:150px;
+            float: left;
+            border: 1px solid gray;
+        }
+        .black{
+        	width: 100px;
+            height:150px;
+            float: left;
+            border: 1px solid gray;
+            background: black;
+        }
+        button {
+        	width: 120px;
+        	height: 50px;
+        	background-color: green;
+        	border-radius: 5px;
+        	color: white;
+        	text-align: center;
+        	outline: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="box">
+    	<div class="score_box">
+           分数:<span id="score">0</span>
+        </div>
+        <div id="main">
+           <div id="content"></div>
+        </div>
+        <button id="startBtn">开始游戏</button>
+    </div>
+<script type="text/javascript">
+    // 通过ID获取元素
+	function $(id){
+       return document.getElementById(id);
+	}
+	// 初始化游戏页面
+    for (var i = 0; i < 4; i++) {
+    	// 创建行和cell函数
+    	creatEle();
+    }
+   
+    function creatEle(){
+    	// 创建一行
+    	var newDiv = document.createElement("div");
+
+    	newDiv.className = "row";
+    	// 获取随机类名数组
+    	var classNm = creatSuiji();
+    	// 每一个行放四个元素
+    	for (var j = 0; j < 4; j++) {
+    		var cellDiv = document.createElement("div");
+    		    cellDiv.className = classNm[j];
+    		newDiv.appendChild(cellDiv);
+    	}
+    	// 如果当前没有创建过row，就把新创建的添加进去，否则的话就放在第一个的前面
+    	if($("content").firstChild == null){
+                $("content").appendChild(newDiv);
+            }else{
+                $("content").insertBefore(newDiv,$("content").firstChild);
+        }
+    }
+    addClick();
+    function addClick(){
+    	var subDiv = document.getElementsByClassName('cell');
+	    for (var i = 0; i < subDiv.length; i++) {
+	       	subDiv[i].onclick = function(){
+	       		// if成立说明点到的是白色块，就输了
+	       		if (this.className.indexOf("black")==-1) {
+	       			clearInterval(timer);
+	                alert("游戏结束");
+	       		}else{
+	       			this.className = "cell";
+	       			this.parentNode.pass = 1;
+	       			// 调用加分函数
+	       			addScore();
+	       		}
+	       	}
+	    } 
+    }
+    var timer = null; 
+    // 点击开始游戏 
+    /*  逻辑：
+        * 让黑快动画
+        * 获取container当前top的值 加像素
+        * */
+    // 控制每次走多少的变量
+    var speed = 2;
+    $("startBtn").onclick = function(){
+    	clearInterval(timer);
+        timer = setInterval(function(){
+          // 获取当前content的top位置
+          var con_top = $("content").offsetTop;
+          // console.log(con_top);
+          if (speed+con_top>0) {
+          	  con_top = 0;
+          }else{
+          	  con_top+=speed;
+          }
+          $("content").style.top = con_top + "px";
+          // 说明这一行已经显示完全，需要新创建一行
+          if (con_top == 0) {
+              creatEle();
+              addClick();
+              // 恢复到初始位置
+              $("content").style.top = "-150px";
+              // 将显示过的那一行删除
+              romoveRow();
+          }else if(con_top == (-150+speed)){
+              var rows = $("content").childNodes;
+              // console.log("+++++"+con_top,rows[rows.length-1].pass);
+              // 如果当前有5行且最后的哪一行不是第一关
+              if((rows.length == 5) && (rows[rows.length-1].pass !== 1)){
+
+                    clearInterval(timer);
+                    alert("游戏结束"+"00000000");
+                }
+          }
+        },20);
+    }
+    // 加分函数
+    function addScore(){
+       var newScore = parseInt($("score").innerHTML)+1;
+       $("score").innerHTML = newScore;
+       if(newScore % 20 == 0){
+                jiasu();
+            }
+    }
+     /*
+        * 删除最后一行黑块
+        * */
+    function romoveRow() {
+           var con = $('content');
+           // con.childNodes.length == 6每次有6行的时候就不需要最后一个了
+           if(con.childNodes.length == 6){
+               con.removeChild(con.lastChild);
+           }
+
+    }
+    // 添加类名函数
+    function creatSuiji(){
+    	 // 将所有的类名放入一个数组中，随机产生一个位置加上black
+    	 var arr = ['cell','cell','cell','cell'];
+            var num = Math.floor(Math.random()*4);
+            // console.log(num);
+            arr[num] = 'cell black';
+            return arr;
+    }
+    /*
+        * 加速方法
+        * */
+    function jiasu() {
+            if(speed == 2){
+                speed = 4;
+            }else if(speed == 4){
+                speed = 5;
+            }else if(speed == 5){
+                speed = 10;
+            }else if(speed == 10){
+                speed = 20;
+            }else if(speed == 20){
+                alert("你已超神，浏览器玩不动了");
+            }
+    }
+</script>
+</body>
+</html>
